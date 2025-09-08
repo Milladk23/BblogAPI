@@ -1,5 +1,6 @@
 import User from "../models/userModel.js";
 import  jwt  from "jsonwebtoken";
+import util from 'util';
 
 const signToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -49,3 +50,44 @@ export const login = async (req, res, next ) => {
 
     createSendToken(user, 200, req, res);
 };
+
+export const protect = async (req, res, next) => {
+    let token;
+
+    if(
+        req.headers.authorization &&
+        req.headers.authorization.startsWith('Bearer')
+    ) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+    else if(req.cookies.jwt) {
+        token = req.cookies.jwt;
+    }
+
+    if(!token) {
+        return res.status(401).json({
+            status: 'failed',
+            message: 'You are not logged in',
+        });
+    }
+
+    const decodedUser = await util.promisify(jwt.verify(token, process.env.JWT_SECRET));
+
+    const user = await User.findById(decodedUser.id);
+
+    if(!user) {
+        return res.status(401).json({
+            status: 'failed',
+            message: "The user blonging to this token does't exist anymore",
+        });
+    }
+    if(user.changPasswordAfter(decodedUser.iat)) {
+        return res.status(401).json({
+            status: 'failed',
+            message: 'The user has changed password recently please login again',
+        });
+    }
+
+    req.user = user;
+    next();
+}
