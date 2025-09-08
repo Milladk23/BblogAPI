@@ -1,0 +1,22 @@
+{
+  "name": "blogapi",
+  "version": "1.0.0",
+  "description": "my first project to level up my node and express skils using mongodb and mongoose",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "author": "Milad Keramati",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.0",
+    "nodemon": "^3.1.10",
+    "validator": "^13.15.15"
+  }
+}
