@@ -66,9 +66,7 @@ export const protect = async (req, res, next) => {
     ) {
         token = req.headers.authorization.split(' ')[1];
     }
-    else if(req.cookies.jwt) {
-        token = req.cookies.jwt;
-    }
+
 
     if(!token) {
         return res.status(401).json({
@@ -77,7 +75,7 @@ export const protect = async (req, res, next) => {
         });
     }
 
-    const decodedUser = await util.promisify(jwt.verify(token, process.env.JWT_SECRET));
+    const decodedUser = await util.promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decodedUser.id);
 
@@ -87,7 +85,7 @@ export const protect = async (req, res, next) => {
             message: "The user blonging to this token does't exist anymore",
         });
     }
-    if(user.changPasswordAfter(decodedUser.iat)) {
+    if(user.changedPasswordAfter(decodedUser.iat)) {
         return res.status(401).json({
             status: 'failed',
             message: 'The user has changed password recently please login again',
@@ -109,3 +107,21 @@ export const restrictTo = function (...roles) {
         next();
     }
 }
+
+export const updatePassword = async (req, res, next) => {
+    const user = await User.findById(req.user.id).select('+password');
+
+    if(!user.correctPassword(req.body.passwordCurrent, user.password)) {
+        return res.status(401).json({
+                status: 'failed',
+                message: 'Wrong pass',
+        });
+    }
+
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+
+    await user.save();
+
+    createSendToken(user, 200, req, res);
+};
