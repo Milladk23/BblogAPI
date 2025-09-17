@@ -18,7 +18,13 @@ const createSendToken = (user, statusCode, req, res) => {
 };
 
 export const signup = async (req, res, next) => {
-    const newUser = await User.create(req.body);
+    const newUser = await User.create({
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.email,
+    password: req.body.password,
+    passwordConfirm: req.body.passwordConfirm,
+  });
 
     createSendToken(newUser, 201, req, res);
 };
