@@ -97,3 +97,15 @@ export const protect = async (req, res, next) => {
     req.user = user;
     next();
 }
+
+export const restrictTo = function (...roles) {
+    return (req, res, next) => {
+        if(roles.includes(req.user.role)){
+            return res.status(403).json({
+                status: 'failed',
+                message: 'You do not have a premission',
+            });
+        }
+        next();
+    }
+}
