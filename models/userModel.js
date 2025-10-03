@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
+import { profile } from 'console';
+import { type } from 'os';
 
-const Schema = mongoose.Schema;
-
-const userSchema = new Schema({
+const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: [true, 'User must have a firstname'],
@@ -45,12 +45,12 @@ const userSchema = new Schema({
     select: false,
     validate: {
       validator: function(el) {
-        el === this.password;
+        return el === this.password;
       },
       message: 'passwords are diffrent',
     }
   },
-  photo: {
+  profilePic: {
     type: String,
     default: 'default.jpeg',
   },
@@ -60,7 +60,19 @@ const userSchema = new Schema({
     select: false,
   },
   birthday: Date,
-  changePasswordAt: Date
+  changePasswordAt: Date,
+  followings: [{
+    type: [mongoose.Schema.ObjectId],
+    ref: 'User',
+  }],
+  followers: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'User',
+  }],
+  active: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 userSchema.pre('save', async function(next) {

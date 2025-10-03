@@ -112,3 +112,38 @@ export const updateUser = async (req, res, next) => {
     });
 }
 
+export const followUnfollow = async (req, res, next) => {
+    const followedUser = await User.findById(req.params.id);
+    const currentUser = await User.findById(req.user.id);
+
+    if(!followedUser) {
+        return res.status(404).json({
+            status: 'failed',
+            message: 'Could not find post with this id',
+        });
+    }
+
+    const indexTarget = followedUser.followers.findIndex(id => id.toString() === currentUser.id);
+
+    const mineIndex = currentUser.followings.findIndex(id => id.toString() === followedUser.id);
+
+    if(indexTarget === -1 ){
+        followedUser.followers.push(currentUser.id);
+        currentUser.followings.push(followedUser.id);
+    } else {
+        followedUser.followers.splice(indexTarget, 1);
+        currentUser.followings.splice(mineIndex, 1);
+    }
+
+    await followedUser.save();
+    await currentUser.save();
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            followedUser,
+            followersCount: followedUser.followers.length,
+            followers: followedUser.followers,
+        },
+    });
+}

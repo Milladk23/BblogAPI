@@ -101,7 +101,7 @@ export const restrictTo = function (...roles) {
         if(!roles.includes(req.user.role)){
             return res.status(403).json({
                 status: 'failed',
-                message: 'You do not have a premission',
+                message: 'You do not have a permission',
             });
         }
         next();
@@ -125,3 +125,21 @@ export const updatePassword = async (req, res, next) => {
 
     createSendToken(user, 200, req, res);
 };
+
+export const optionalProtect = async (req, res, next) => {
+    let token;
+
+    if(
+        req.headers.authorization &&
+        req.headers.authorization.startsWith('Bearer')
+    ) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
+    const decodedUser = await util.promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decodedUser.id);
+
+    req.user = user;
+    next();
+}
