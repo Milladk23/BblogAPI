@@ -1,6 +1,7 @@
-import Notification from "../models/notificationModel";
+import Notification from "../models/notificationModel.js";
+import catchAsync from "../utils/catchAsync.js";
 
-export const getMyNotification = async (req, res, next) => {
+export const getMyNotification = catchAsync(async (req, res, next) => {
     const notifications = await Notification.find({ toUser: req.user.id})
         .populate('fromUser', 'firstName lastName profilePic')
         .populate('post', 'title')
@@ -14,4 +15,4 @@ export const getMyNotification = async (req, res, next) => {
                 notifications,
             },
         });
-};
+});

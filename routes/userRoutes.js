@@ -1,6 +1,6 @@
 import express from 'express';
 import {signup, login, updatePassword, protect, restrictTo} from '../controllers/authControllers.js';
-import { getAllUsers, updateMe, updateUser, deleteMe, deleteUser, getUser, followUnfollow } from '../controllers/userControllers.js';
+import { getAllUsers, updateMe, updateUser, deleteMe, deleteUser, getUser, followUnfollow, uploadUserProfile, resizeUserProfile } from '../controllers/userControllers.js';
 import { getMyNotification } from '../controllers/notificationControllers.js';
 
 const router = express.Router();
@@ -12,7 +12,12 @@ router.use(protect);
 
 router.patch('/updateMyPassword', updatePassword);
 router.get('/notifications', getMyNotification);
-router.patch('/updateMe', updateMe);
+router.patch(
+    '/updateMe',
+    uploadUserProfile,
+    resizeUserProfile,
+    updateMe
+);
 router.delete('/deleteMe', deleteMe);
 
 router.patch('/:id/follow', followUnfollow);

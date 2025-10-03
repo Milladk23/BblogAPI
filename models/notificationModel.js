@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { types } from "util";
 
 const notificationSchema = new mongoose.Schema({
     toUser: {

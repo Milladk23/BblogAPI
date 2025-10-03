@@ -1,7 +1,9 @@
 import Comment from "../models/commentModel.js";
+import catchAsync from "../utils/catchAsync.js";
 import Post from "../models/postModel.js";
+import AppError from "../utils/appError.js";
 
-export const createComment = async (req, res, next) => {
+export const createComment = catchAsync(async (req, res, next) => {
     const { content } = req.body;
 
     const comment = await Comment.create({
@@ -25,9 +27,9 @@ export const createComment = async (req, res, next) => {
             comment,
         },
     });
-};
+});
 
-export const getAllCommentsOfPost = async(req, res, next) => {
+export const getAllCommentsOfPost = catchAsync(async(req, res, next) => {
     const postId = req.body.post;
     const comments = await Comment.find({ post: postId }).populate('author', 'firstName lastName profilePic').populate('post');
 
@@ -38,16 +40,13 @@ export const getAllCommentsOfPost = async(req, res, next) => {
             comments,
         },
     });
-};
+});
 
-export const getComment = async (req, res, next) => {
+export const getComment = catchAsync(async (req, res, next) => {
     const comment = await Comment.findById(req.params.id).populate('author', 'firstName lastName profilePic').populate('post');
     
     if(!comment) {
-        return res.status(404).json({
-            status: 'failed',
-            message: 'Could not find comment with this id',
-        });
+        return new AppError(404, 'Could not find comment with this id');
     }
 
     res.status(200).json({
@@ -56,22 +55,16 @@ export const getComment = async (req, res, next) => {
             comment,
         },
     });
-}
+});
 
-export const updateComment = async (req, res, next) => {
+export const updateComment = catchAsync(async (req, res, next) => {
     const comment = await Comment.findById(req.params.id);
     if(!comment) {
-        return res.status(404).json({
-            status: 'failed',
-            message: 'Could not find comment with this id',
-        });
+        return new AppError(404, 'Could not find comment with this id');
     }
 
     if(!(req.user.id === comment.author.toString())){
-        return res.status(403).json({
-                status: 'failed',
-                message: 'You do not have a permission',
-            });    
+        return new AppError(403, 'You do not have a permission');   
     }
 
     const updatedComment = await Comment.findByIdAndUpdate(req.params.id, req.body, {
@@ -85,23 +78,18 @@ export const updateComment = async (req, res, next) => {
             updatedComment,
         },
     });
-}
+});
 
-export const deleteComment = async (req, res, next) => {
+export const deleteComment = catchAsync(async (req, res, next) => {
     const comment = await Comment.findById(req.params.id);
     if(!comment) {
-        return res.status(404).json({
-            status: 'failed',
-            message: 'Could not find comment with this id',
-        });
+        return new AppError(404, 'Could not find comment with this id');
     }
 
     if(!(req.user.id === comment.author.toString())){
-        return res.status(403).json({
-                status: 'failed',
-                message: 'You do not have a permission',
-            });    
+        return new AppError(403, 'You do not have a permission');   
     }
+
     comment.active = false;
     await comment.save();
 
@@ -110,9 +98,9 @@ export const deleteComment = async (req, res, next) => {
         data: null
     });
     
-}
+});
 
-export const deleteCommentAdmin = async (req, res, next) => {
+export const deleteCommentAdmin = catchAsync(async (req, res, next) => {
     await Comment.findByIdAndDelete(req.params.id);
 
     return res.status(200).json({
@@ -120,16 +108,13 @@ export const deleteCommentAdmin = async (req, res, next) => {
         data: null
     });
     
-}
+});
 
-export const likeComment = async(req, res, next) => {
+export const likeComment = catchAsync(async(req, res, next) => {
     const comment = await Comment.findById(req.params.id);
 
     if(!comment) {
-        return res.status(404).json({
-            status: 'failed',
-            message: 'Could not find comment with this id',
-        });
+        return new AppError(404, 'Could not find comment with this id');
     }
 
     const index = comment.likes.findIndex(like =>
@@ -162,4 +147,4 @@ export const likeComment = async(req, res, next) => {
             createdAt: comment.createdAt,
         },
     });
-}
+});

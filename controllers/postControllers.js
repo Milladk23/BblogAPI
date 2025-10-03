@@ -1,9 +1,53 @@
+import multer from "multer";
+import sharp from "sharp";
 import Post from "../models/postModel.js";
 import User from "../models/userModel.js";
 import Notification from "../models/notificationModel.js";
 import ApiFeatures from "../utils/apiFeatures.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
-export const getAllPosts = async(req, res, next) => {
+const multerStorage = multer.memoryStorage();
+
+const multerFillter = (req, file, cb) => {
+    if(file.mimetype.startsWith('image')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Not an image! Please upload an image'), false);
+    }
+};
+
+const upload = multer({
+    storage: multerStorage,
+    fileFilter: multerFillter,
+});
+
+export const uploadPostImages = upload.fields([
+    { name: 'images', maxCount: 10},
+]);
+
+export const resizePostsImage = catchAsync(async (req, res, next) => {
+    if (!req.files || !req.files.images) return next();
+
+    req.body.images = [];
+    await Promise.all(
+        req.files.images.map(async (file, i) => {
+            const fileName = `post-${req.params.id}-${Date.now()}-${ i + 1 }.jpeg`;
+
+            await sharp(file.buffer)
+                .resize(2000, 1333, { fit: 'inside' })
+                .toFormat('jpeg')
+                .jpeg( { quality: 70 } )
+                .toFile(`public/img/posts/${fileName}`);
+            
+            req.body.images[i] = fileName;
+        })
+    );
+    
+    next();
+});
+
+export const getAllPosts = catchAsync(async(req, res, next) => {
     const posts = await Post.find().populate('author', 'firstName lastName profilePic').select('-__v -likes');
 
     res.status(200).json({
@@ -13,10 +57,10 @@ export const getAllPosts = async(req, res, next) => {
             posts,
         },
     });
-};
+});
 
-export const createPost = async (req, res, next) => {
-    const { title, content, tags, category, published } = req.body;
+export const createPost = catchAsync(async (req, res, next) => {
+    const { title, content, tags, category, published, images } = req.body;
 
     const post = await Post.create({
         title,
@@ -24,6 +68,7 @@ export const createPost = async (req, res, next) => {
         tags,
         category,
         published,
+        images,
         author: req.user,
     });
 
@@ -33,16 +78,13 @@ export const createPost = async (req, res, next) => {
             post,
         },
     });
-};
+});
 
-export const getPost = async (req, res, next) => {
+export const getPost = catchAsync(async(req, res, next) => {
     const post = await Post.findById(req.params.id);
     
     if(!post) {
-        return res.status(404).json({
-            status: 'failed',
-            message: 'Could not find post with this id',
-        });
+        return new AppError(404, 'Could not find post with this id');
     }
 
 
@@ -69,22 +111,16 @@ export const getPost = async (req, res, next) => {
             commonLikesWithFollowings: populatedCommonLikes,
         },
     });
-}
+});
 
-export const updatePost = async (req, res, next) => {
+export const updatePost = catchAsync(async (req, res, next) => {
     const post = await Post.findById(req.params.id);
     if(!post) {
-        return res.status(404).json({
-            status: 'failed',
-            message: 'Could not find post with this id',
-        });
+        return new AppError(404, 'Could not find post with this id');
     }
 
     if(!(req.user.id === post.author.toString())){
-        return res.status(403).json({
-                status: 'failed',
-                message: 'You do not have a permission',
-            });    
+        return new AppError(403, 'You do not have a permission');   
     }
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, {
@@ -98,15 +134,12 @@ export const updatePost = async (req, res, next) => {
             updatedPost,
         },
     });
-}
+});
 
-export const deletePost = async (req, res, next) => {
+export const deletePost = catchAsync(async (req, res, next) => {
     const post = await Post.findById(req.params.id);
     if(!post) {
-        return res.status(404).json({
-            status: 'failed',
-            message: 'Could not find post with this id',
-        });
+        return new AppError(404, 'Could not find post with this id');
     }
 
     if(!(req.user.id === post.author.toString())){
@@ -122,9 +155,9 @@ export const deletePost = async (req, res, next) => {
         status: 'success',
         data: null
     });
-}
+});
 
-export const deletePostAdmin = async (req, res, next) => {
+export const deletePostAdmin = catchAsync(async (req, res, next) => {
     await Post.findByIdAndDelete(req.params.id);
 
     return res.status(200).json({
@@ -132,16 +165,13 @@ export const deletePostAdmin = async (req, res, next) => {
         data: null
     });
     
-}
+});
 
-export const likePost = async(req, res, next) => {
+export const likePost = catchAsync(async(req, res, next) => {
     const post = await Post.findById(req.params.id);
 
     if(!post) {
-        return res.status(404).json({
-            status: 'failed',
-            message: 'Could not find post with this id',
-        });
+        return new AppError(404, 'Could not find post with this id');
     }
 
     const index = post.likes.findIndex(like =>
@@ -172,16 +202,13 @@ export const likePost = async(req, res, next) => {
             likes: populatedPost.likes,
         },
     });
-}
+});
 
-export const repost = async (req, res, next) => {
+export const repost = catchAsync(async (req, res, next) => {
     const originalPost = await Post.findById(req.params.id);
 
     if(!originalPost) {
-        return res.status(404).json({
-            status: 'failed',
-            message: 'Could not find post with this id',
-        }); 
+        return new AppError(404, 'Could not find post with this id');
     }
 
     const existingRepost = await Post.findOne({
@@ -190,9 +217,7 @@ export const repost = async (req, res, next) => {
     });
 
     if(existingRepost) {
-        await Post.findByIdAndUpdate(existingRepost._id, {
-            active: false,
-        });
+        await Post.findByIdAndDelete(existingRepost._id)
 
         return res.status(200).json({
             status: 'success',
@@ -222,9 +247,9 @@ export const repost = async (req, res, next) => {
         message: 'Reposted',
         repostedOne
     });
-}
+});
 
-export const GetTrendingPosts = async (req, res, next) => {
+export const GetTrendingPosts = catchAsync(async (req, res, next) => {
     const since = new Date();
     since.setDate(since.getDate() - 7);
 
@@ -322,4 +347,4 @@ export const GetTrendingPosts = async (req, res, next) => {
             trendings,
         },
     });
-}
+});

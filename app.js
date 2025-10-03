@@ -17,6 +17,8 @@ mongoose
   .catch(err => console.log(err));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // برای form-data
+
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/posts', postRouter);
 app.use('/api/v1/comments', commentRouter);
