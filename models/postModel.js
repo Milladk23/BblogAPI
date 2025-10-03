@@ -42,7 +42,6 @@ const postSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
-        score: (likes.count * 2) + (comments.count)
     }, { timestamps: true }
 );
 
