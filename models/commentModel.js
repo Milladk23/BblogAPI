@@ -32,6 +32,12 @@ const commentSchema = new mongoose.Schema(
     }, { timestamps: true },
 );
 
+commentSchema.pre('save', function(next) {
+  this.likesCount = this.likes.length;
+  next();
+});
+
+
 commentSchema.pre(/^find/, function(next) {
     this.find({ active: { $ne: false } });
     next(); 

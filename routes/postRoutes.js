@@ -25,6 +25,6 @@ router.route('/:id/like').patch(likePost);
 
 router.route('/:id/repost').post(repost);
 
-router.route('/:id/trending').get(GetTrendingPosts);
+router.route('/trending').get(GetTrendingPosts);
 
 export default router;
