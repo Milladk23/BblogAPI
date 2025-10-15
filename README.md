@@ -19,17 +19,6 @@ A RESTful Blog API built with **Node.js**, **Express**, **MongoDB**, and **Mongo
 - Sharp / Multer
 - Git / GitHub
 
-## ⚙️ Installation
-```bash
-1- Clone the project
-git clone https://github.com/Milladk23/BblogAPI.git
-cd BblogAPI
-2- Install packages
-npm install packages
-3- Run the project
-npm run start
-```bash
-
 ### 🔚 API endpoints
 
 1️⃣ Authentication
@@ -73,3 +62,14 @@ src/
   app.js
   package-lock.json
   package.json
+ 
+## ⚙️ Installation
+```bash
+1- Clone the project
+git clone https://github.com/Milladk23/BblogAPI.git
+cd BblogAPI
+2- Install packages
+npm install packages
+3- Run the project
+npm run start
+
