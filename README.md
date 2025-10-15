@@ -28,6 +28,7 @@ cd BblogAPI
 npm install packages
 3- Run the project
 npm run start
+```bash
 
 ### 🔚 API endpoints
 
