@@ -29,7 +29,7 @@ npm install packages
 3- Run the project
 npm run start
 
-## 🔚 API endpoints
+### 🔚 API endpoints
 
 1️⃣ Authentication
 | POST | api/v1/users/signup | Register new user |
