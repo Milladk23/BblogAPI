@@ -11,15 +11,15 @@ dotenv.config({ path: './config.env' });
 
 import app from "./app";
 
-mongoose
-  .connect(process.env.DATABASE)
-  .then(() => {
-    console.log('MongoDB has been conected');
-  })
-  .catch(err => console.log(err));
+mongoose.connect(process.env.DATABASE)
+  .then(() => console.log('MongoDB has been connected'))
+  .catch(err => {
+    console.log('Database connection failed:', err);
+    process.exit(1);
+  });
 
 const port = process.env.PORT || 3000;
-app.listen(port, '127.0.0.1', () => {
+const server = app.listen(port, '127.0.0.1', () => {
     console.log('The server is running');
 });
 
