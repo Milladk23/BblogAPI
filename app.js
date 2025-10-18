@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
+import path from 'path';
+import morgan from 'morgan';
 
 import userRouter from './routes/userRoutes.js';
 import postRouter from './routes/postRoutes.js';
@@ -19,7 +21,6 @@ app.use(cors());
 
 app.options('*', cors());
 
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(helmet());
 
@@ -41,6 +42,8 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(mongoSanitize());
 
 app.use(xss());
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/posts', postRouter);
